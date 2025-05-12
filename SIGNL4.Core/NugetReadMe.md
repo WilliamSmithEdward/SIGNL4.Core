@@ -23,5 +23,5 @@ public static async Task SendAlertAsync(
     string description,
     string severity = "low",
     string category = "Default",
-    DetailKeyValuePairs = details ?? []
+    List<KeyValuePair<string, string>>? details = null
 )
