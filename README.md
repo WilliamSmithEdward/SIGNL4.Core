@@ -20,8 +20,8 @@ The `SIGNL4.Core.Services.AlertService` class provides a simple, extensible way 
 public static async Task SendAlertAsync(
     string webhookUrl,
     string title,
-    string details,
+    string description,
     string severity = "low",
     string category = "Default",
-    List<Exception>? exceptions = null
+    DetailKeyValuePairs = details ?? []
 )
