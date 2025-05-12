@@ -6,14 +6,17 @@ namespace SIGNL4.Core.Models
     {
         [JsonPropertyName("title")]
         public required string Title { get; set; }
-
-        [JsonPropertyName("details")]
-        public required string Details { get; set; }
+        
+        [JsonPropertyName("message")]
+        public required string Description { get; set; }
 
         [JsonPropertyName("severity")]
         public string Severity { get; set; } = "low";
 
         [JsonPropertyName("X-S4-Service")]
         public string Category { get; set; } = "Default";
+
+        [JsonPropertyName("exception_list")]
+        public List<Exception>? ExceptionList { get; set; }
     }
 }

@@ -13,11 +13,17 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>1.0.1</VersionPrefix>
     <PackageIcon>signl4_library.png</PackageIcon>
+    <PackageReadmeFile>NugetReadMe.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Update="NugetReadMe.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Update="signl4_library.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
