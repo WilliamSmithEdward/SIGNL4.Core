@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>SIGNL4.Core</Title>
+    <Description>A light-weight wrapper utility library for alerting with the SIGNL4 platform.</Description>
+    <Copyright>Hearthstone 2025</Copyright>
+  </PropertyGroup>
+
+</Project>
