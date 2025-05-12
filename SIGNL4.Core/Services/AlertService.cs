@@ -8,14 +8,14 @@ namespace SIGNL4.Core.Services
     {
         private static readonly HttpClient _httpClient = new();
 
-        public static async Task SendAlertAsync(string webhookUrl, string title, string details, string severity = "low", string category = "Default", List<Exception>? exceptions = null)
+        public static async Task SendAlertAsync(string webhookUrl, string title, string description, string severity = "low", string category = "Default", List<Exception>? exceptions = null)
         {
             if (string.IsNullOrEmpty(webhookUrl))
             {
                 throw new ArgumentException("Webhook URL cannot be null or empty.", nameof(webhookUrl));
             }
 
-            var formattedDetails = new StringBuilder(details);
+            var formattedDetails = new StringBuilder(description);
 
             if (exceptions is { Count: > 0 })
             {
@@ -33,9 +33,10 @@ namespace SIGNL4.Core.Services
             var payload = new AlertPayload
             {
                 Title = title,
-                Details = formattedDetails.ToString(),
+                Description = formattedDetails.ToString(),
                 Severity = severity.ToLowerInvariant(),
-                Category = category
+                Category = category,
+                ExceptionList = exceptions
             };
 
             var json = JsonSerializer.Serialize(payload);
