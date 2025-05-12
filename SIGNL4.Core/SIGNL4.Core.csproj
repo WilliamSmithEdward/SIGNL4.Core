@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>1.0.2</VersionPrefix>
+    <VersionPrefix>1.0.3</VersionPrefix>
     <PackageIcon>signl4_library.png</PackageIcon>
     <PackageReadmeFile>NugetReadMe.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
