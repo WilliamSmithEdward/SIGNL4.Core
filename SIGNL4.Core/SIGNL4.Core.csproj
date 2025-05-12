@@ -8,6 +8,20 @@
     <Title>SIGNL4.Core</Title>
     <Description>A light-weight wrapper utility library for alerting with the SIGNL4 platform.</Description>
     <Copyright>Hearthstone 2025</Copyright>
+    <PackageProjectUrl>https://github.com/WilliamSmithEdward/SIGNL4.Core</PackageProjectUrl>
+    <Version>$(VersionPrefix)</Version>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <PackageIcon>signl4_library.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="signl4_library.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
