@@ -16,7 +16,7 @@ namespace SIGNL4.Core.Models
         [JsonPropertyName("X-S4-Service")]
         public string Category { get; set; } = "Default";
 
-        [JsonPropertyName("exception_list")]
-        public List<Exception>? ExceptionList { get; set; }
+        [JsonPropertyName("details")]
+        public List<KeyValuePair<string, string>> DetailKeyValuePairs { get; set; } = [];
     }
 }

@@ -8,35 +8,20 @@ namespace SIGNL4.Core.Services
     {
         private static readonly HttpClient _httpClient = new();
 
-        public static async Task SendAlertAsync(string webhookUrl, string title, string description, string severity = "low", string category = "Default", List<Exception>? exceptions = null)
+        public static async Task SendAlertAsync(string webhookUrl, string title, string description, string severity = "low", string category = "Default", List<KeyValuePair<string, string>>? details = null)
         {
             if (string.IsNullOrEmpty(webhookUrl))
             {
                 throw new ArgumentException("Webhook URL cannot be null or empty.", nameof(webhookUrl));
             }
 
-            var formattedDetails = new StringBuilder(description);
-
-            if (exceptions is { Count: > 0 })
-            {
-                formattedDetails.AppendLine();
-                formattedDetails.AppendLine("Exceptions:");
-
-                foreach (var ex in exceptions)
-                {
-                    formattedDetails.AppendLine($"--- {ex.GetType().Name} ---");
-                    formattedDetails.AppendLine(ex.Message);
-                    formattedDetails.AppendLine(ex.StackTrace);
-                }
-            }
-
             var payload = new AlertPayload
             {
                 Title = title,
-                Description = formattedDetails.ToString(),
+                Description = description,
                 Severity = severity.ToLowerInvariant(),
                 Category = category,
-                ExceptionList = exceptions
+                DetailKeyValuePairs = details ?? []
             };
 
             var json = JsonSerializer.Serialize(payload);
