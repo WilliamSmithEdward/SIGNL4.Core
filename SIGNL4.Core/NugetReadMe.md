@@ -78,10 +78,10 @@ From SIGNL4's [webhook documentation](https://docs.signl4.com/integrations/webho
 
 - `ArgumentNullException` when `webhookUrl` is null, and `ArgumentException` when it is empty, is not an absolute URL, or is not `https`. Plain `http` is accepted only for the local machine (a loopback address or `localhost`), such as a test server. Nothing is sent, and the message leaves the URL out.
 - `NullReferenceException` when `severity` is null.
-- `HttpRequestException` when the webhook cannot be reached or answers with a status outside 200 to 299. The message names the status code, or the host and port, never the path, so it does not hold the team secret.
+- `HttpRequestException` when the webhook cannot be reached, answers with a status outside 200 to 299, or answers with a redirect (`301`, `302` or `303`) that HttpClient follows with a `GET`, which drops the alert. The message names the status code, or the host and port, never the path, so it does not hold the team secret.
 - `TaskCanceledException` when no answer arrives within 100 seconds, HttpClient's default timeout.
 
-Every call goes through one static `HttpClient` with default settings, created on first use and never disposed. A call cannot be cancelled, and its timeout, proxy and handler cannot be changed.
+Every call goes through one static `HttpClient`, created on first use and never disposed. It uses the system proxy, checks the server's certificate, follows redirects (a `307` or `308` keeps the alert), and replaces its connections every two minutes, so a change to the webhook host's address is seen. Blocking on the returned task (`.Wait()`, `.Result`) does not deadlock, even on a UI thread. A call cannot be cancelled, and its timeout, proxy and handler cannot be changed.
 
 ---
 
@@ -103,10 +103,7 @@ The alert carries the text you pass, unchanged, and the library sets no size lim
 
 ## Known problems in 1.0.3
 
-- A redirect can lose an alert without an error. When the webhook answers `301` or `302`, HttpClient repeats the request as a `GET` without the body, and the call completes as if the alert had been raised.
-- Blocking on the returned task (`.Wait()`, `.Result`) on a thread with a single-threaded synchronization context, such as a WinForms or WPF UI thread or classic ASP.NET, deadlocks: the method tries to resume on the thread the caller is blocking.
 - A null `severity` throws `NullReferenceException` instead of `ArgumentNullException`.
-- The shared `HttpClient` keeps a connection open for as long as calls follow each other within a minute, so a process that alerts that often never looks up the webhook host's address again.
 
 ---
 
