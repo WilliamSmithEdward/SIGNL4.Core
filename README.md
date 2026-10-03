@@ -85,7 +85,7 @@ From SIGNL4's [webhook documentation](https://docs.signl4.com/integrations/webho
 ### Errors
 
 - `ArgumentNullException` when `webhookUrl` is null, and `ArgumentException` when it is empty, is not an absolute URL, or is not `https`. Plain `http` is accepted only for the local machine (a loopback address or `localhost`), such as a test server. Nothing is sent, and the message leaves the URL out.
-- `NullReferenceException` when `severity` is null.
+- `ArgumentNullException` when `severity` is null. Nothing is sent.
 - `HttpRequestException` when the webhook cannot be reached, answers with a status outside 200 to 299, or answers with a redirect (`301`, `302` or `303`) that HttpClient follows with a `GET`, which drops the alert. The message names the status code, or the host and port, never the path, so it does not hold the team secret.
 - `TaskCanceledException` when no answer arrives within 100 seconds, HttpClient's default timeout.
 
@@ -106,12 +106,6 @@ The library sends the alert only to an `https://` URL, or over `http` to the loc
 ### What goes into an alert
 
 The alert carries the text you pass, unchanged, and the library sets no size limit. SIGNL4 shows it on the team's phones. Leave out passwords, connection strings and personal data. An exception's message or stack trace can hold file paths, server names and sometimes secrets, so check what it holds before you put it into `description` or `details`.
-
----
-
-## Known problems in 1.0.3
-
-- A null `severity` throws `NullReferenceException` instead of `ArgumentNullException`.
 
 ---
 
