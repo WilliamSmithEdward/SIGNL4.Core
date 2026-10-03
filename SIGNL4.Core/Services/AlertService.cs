@@ -46,12 +46,11 @@ namespace SIGNL4.Core.Services
         /// <c>{"Key": ..., "Value": ...}</c> objects. Null sends an empty array.
         /// </param>
         /// <returns>A task that completes once the webhook has accepted the alert.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="webhookUrl"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="webhookUrl"/> or <paramref name="severity"/> is null.</exception>
         /// <exception cref="ArgumentException">
         /// <paramref name="webhookUrl"/> is empty, is not an absolute URL, or is not https and
         /// not http to the local machine. Nothing is sent.
         /// </exception>
-        /// <exception cref="NullReferenceException"><paramref name="severity"/> is null.</exception>
         /// <exception cref="HttpRequestException">
         /// The webhook cannot be reached, answers with a status outside 200 to 299, or answers
         /// with a redirect (301, 302 or 303) that HttpClient follows with a GET, which drops the
@@ -61,6 +60,7 @@ namespace SIGNL4.Core.Services
         public static async Task SendAlertAsync(string webhookUrl, string title, string description, string severity = "low", string category = "Default", List<KeyValuePair<string, string>>? details = null)
         {
             var webhook = CheckWebhookUrl(webhookUrl);
+            ArgumentNullException.ThrowIfNull(severity);
 
             var payload = new AlertPayload
             {
