@@ -6,7 +6,7 @@ SIGNL4.Core sends an alert to a SIGNL4 team through the team's inbound webhook. 
 dotnet add package SIGNL4.Core
 ```
 
-The package targets net9.0 and has no package dependencies.
+The package targets net8.0, net9.0 and net10.0 and has no package dependencies. .NET 8 and .NET 9 leave Microsoft support on 2026-11-10.
 
 ---
 
