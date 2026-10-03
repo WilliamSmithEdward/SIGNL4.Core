@@ -21,9 +21,9 @@ namespace SIGNL4.Core.Services
         /// <summary>
         /// Posts one alert to a SIGNL4 webhook as JSON and completes when the webhook answers
         /// with a status from 200 to 299. Every call shares one static <see cref="HttpClient"/>,
-        /// so the call times out after 100 seconds and cannot be cancelled. The returned task
-        /// does not need the caller's synchronization context, so blocking on it does not
-        /// deadlock.
+        /// so the call times out after 100 seconds. To cancel it or end it sooner, use the
+        /// overload that takes a <see cref="CancellationToken"/>. The returned task does not
+        /// need the caller's synchronization context, so blocking on it does not deadlock.
         /// </summary>
         /// <param name="webhookUrl">
         /// The team's webhook URL, <c>https://connect.signl4.com/webhook/{team-secret}</c>.
@@ -57,10 +57,56 @@ namespace SIGNL4.Core.Services
         /// alert.
         /// </exception>
         /// <exception cref="TaskCanceledException">The webhook did not answer within 100 seconds.</exception>
-        public static async Task SendAlertAsync(string webhookUrl, string title, string description, string severity = "low", string category = "Default", List<KeyValuePair<string, string>>? details = null)
+        public static Task SendAlertAsync(string webhookUrl, string title, string description, string severity = "low", string category = "Default", List<KeyValuePair<string, string>>? details = null)
+        {
+            return SendAlertAsync(webhookUrl, title, description, severity, category, details, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Posts one alert to a SIGNL4 webhook as JSON, as the overload without a token does,
+        /// and stops when <paramref name="cancellationToken"/> is cancelled. A
+        /// <see cref="CancellationTokenSource"/> made with a delay gives the call a timeout
+        /// shorter than HttpClient's 100 seconds. Every argument must be given; pass
+        /// <c>"low"</c>, <c>"Default"</c> and <c>null</c> for the other overload's defaults.
+        /// </summary>
+        /// <param name="webhookUrl">
+        /// The team's webhook URL, <c>https://connect.signl4.com/webhook/{team-secret}</c>.
+        /// It holds the team secret, so keep it out of source code and logs. It must be an
+        /// absolute <c>https</c> URL; plain <c>http</c> is accepted only for the local machine
+        /// (a loopback address or <c>localhost</c>), such as a test server.
+        /// </param>
+        /// <param name="title">The alert's title, sent as the <c>title</c> field.</param>
+        /// <param name="description">The alert's text, sent as the <c>message</c> field.</param>
+        /// <param name="severity">Sent in lower case as the <c>severity</c> field.</param>
+        /// <param name="category">Sent as the <c>X-S4-Service</c> control parameter.</param>
+        /// <param name="details">
+        /// Extra name and value pairs, sent in order as the <c>details</c> field. Null sends an
+        /// empty array.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// Cancels the call. A token already cancelled sends nothing. Once the request has gone,
+        /// SIGNL4 may raise the alert even though the call ends cancelled.
+        /// </param>
+        /// <returns>A task that completes once the webhook has accepted the alert.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="webhookUrl"/> or <paramref name="severity"/> is null.</exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="webhookUrl"/> is empty, is not an absolute URL, or is not https and
+        /// not http to the local machine. Nothing is sent.
+        /// </exception>
+        /// <exception cref="HttpRequestException">
+        /// The webhook cannot be reached, answers with a status outside 200 to 299, or answers
+        /// with a redirect (301, 302 or 303) that HttpClient follows with a GET, which drops the
+        /// alert.
+        /// </exception>
+        /// <exception cref="OperationCanceledException">
+        /// <paramref name="cancellationToken"/> was cancelled, or the webhook did not answer
+        /// within 100 seconds (a <see cref="TaskCanceledException"/>).
+        /// </exception>
+        public static async Task SendAlertAsync(string webhookUrl, string title, string description, string severity, string category, List<KeyValuePair<string, string>>? details, CancellationToken cancellationToken)
         {
             var webhook = CheckWebhookUrl(webhookUrl);
             ArgumentNullException.ThrowIfNull(severity);
+            cancellationToken.ThrowIfCancellationRequested();
 
             var payload = new AlertPayload
             {
@@ -76,7 +122,7 @@ namespace SIGNL4.Core.Services
 
             // ConfigureAwait(false): a caller that blocks on the task from a single-threaded
             // context, such as a UI thread, would otherwise deadlock.
-            using var response = await _httpClient.PostAsync(webhook, content).ConfigureAwait(false);
+            using var response = await _httpClient.PostAsync(webhook, content, cancellationToken).ConfigureAwait(false);
 
             // A 301, 302 or 303 makes HttpClient follow with a GET and no body, so a success
             // after one means the alert was dropped on the way.

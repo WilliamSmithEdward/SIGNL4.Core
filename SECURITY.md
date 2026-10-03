@@ -28,7 +28,8 @@ process, and reads and writes no files. What it reaches:
   body built from the caller's arguments, to the webhook URL the caller
   passes, which must be `https`, or `http` to the local machine. It goes
   through one static `HttpClient`: the system proxy, the machine's
-  certificate checks, a 100-second timeout, connections replaced every two
+  certificate checks, a 100-second timeout unless the caller's
+  `CancellationToken` ends the call sooner, connections replaced every two
   minutes, and redirects followed. A redirect that HttpClient follows with a
   `GET`, dropping the alert, throws instead of passing for success, as it
   did in 1.0.3. The library reads nothing from the answer but its status
