@@ -54,7 +54,7 @@ The first sample posts this body, with `Content-Type: application/json; charset=
 
 | Parameter | JSON field | What the library does |
 |---|---|---|
-| `webhookUrl` | none | Posts to this URL. SIGNL4's form is `https://connect.signl4.com/webhook/{team-secret}`. |
+| `webhookUrl` | none | Posts to this URL, which must be `https`. SIGNL4's form is `https://connect.signl4.com/webhook/{team-secret}`. |
 | `title` | `title` | Sends it as given. |
 | `description` | `message` | Sends it as given. |
 | `severity` | `severity` | Sends it in lower case. Default `"low"`. |
@@ -76,8 +76,7 @@ From SIGNL4's [webhook documentation](https://docs.signl4.com/integrations/webho
 
 ### Errors
 
-- `ArgumentException` when `webhookUrl` is null or empty.
-- `InvalidOperationException` when `webhookUrl` is not an absolute URL, whitespace included; `NotSupportedException` for a scheme other than `http` and `https`; `UriFormatException` when it cannot be parsed.
+- `ArgumentNullException` when `webhookUrl` is null, and `ArgumentException` when it is empty, is not an absolute URL, or is not `https`. Plain `http` is accepted only for the local machine (a loopback address or `localhost`), such as a test server. Nothing is sent, and the message leaves the URL out.
 - `NullReferenceException` when `severity` is null.
 - `HttpRequestException` when the webhook cannot be reached or answers with a status outside 200 to 299. The message names the status code, or the host and port, never the path, so it does not hold the team secret.
 - `TaskCanceledException` when no answer arrives within 100 seconds, HttpClient's default timeout.
@@ -94,7 +93,7 @@ Anyone holding the URL can raise alerts for the team, so treat it as a password:
 
 ### Use the https URL
 
-Version 1.0.3 also posts to an `http://` URL, which sends the team secret and the alert across the network in clear text. Use the `https://` URL SIGNL4 gives you.
+The library sends the alert only to an `https://` URL, or over `http` to the local machine, so the team secret and the alert do not cross the network in clear text. Version 1.0.3 also posted to an `http://` URL on any host; use the `https://` URL SIGNL4 gives you.
 
 ### What goes into an alert
 
@@ -104,7 +103,6 @@ The alert carries the text you pass, unchanged, and the library sets no size lim
 
 ## Known problems in 1.0.3
 
-- An `http://` URL is accepted, so the team secret and the alert can cross the network in clear text.
 - A redirect can lose an alert without an error. When the webhook answers `301` or `302`, HttpClient repeats the request as a `GET` without the body, and the call completes as if the alert had been raised.
 - Blocking on the returned task (`.Wait()`, `.Result`) on a thread with a single-threaded synchronization context, such as a WinForms or WPF UI thread or classic ASP.NET, deadlocks: the method tries to resume on the thread the caller is blocking.
 - A null `severity` throws `NullReferenceException` instead of `ArgumentNullException`.
