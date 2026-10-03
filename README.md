@@ -1,27 +1,117 @@
-# 📢 SIGNL4 AlertService
+# SIGNL4.Core
 
-The `SIGNL4.Core.Services.AlertService` class provides a simple, extensible way to send alerts to your SIGNL4 team using a webhook. It supports optional severity, category tagging, and exception formatting.
+SIGNL4.Core sends an alert to a SIGNL4 team through the team's inbound webhook. It is an unofficial client: SIGNL4 is a product of Derdack, and this library is not made, endorsed or supported by Derdack.
 
----
+```
+dotnet add package SIGNL4.Core
+```
 
-## ✅ Requirements
-
-- .NET 6.0 or later
-- Reference to `SIGNL4.Core` in your project
-- A valid SIGNL4 webhook URL
+The package targets net9.0 and has no package dependencies.
 
 ---
 
-## 🚀 Usage
-
-### Method Signature
+## Send an alert
 
 ```csharp
-public static async Task SendAlertAsync(
-    string webhookUrl,
-    string title,
-    string description,
-    string severity = "low",
-    string category = "Default",
-    List<KeyValuePair<string, string>>? details = null
-)
+using SIGNL4.Core.Services;
+
+// The webhook URL holds the team secret. Read it from configuration or a
+// secret store; never write it into source code.
+string webhookUrl = Environment.GetEnvironmentVariable("SIGNL4_WEBHOOK_URL")
+    ?? throw new InvalidOperationException("Set SIGNL4_WEBHOOK_URL.");
+
+await AlertService.SendAlertAsync(
+    webhookUrl,
+    title: "Disk almost full",
+    description: "Volume D: on web-01 has 2% free.",
+    severity: "High",
+    category: "Storage",
+    details:
+    [
+        new("Host", "web-01"),
+        new("Free space", "2%"),
+    ]);
+```
+
+`SendAlertAsync` posts one JSON object to the URL and completes when the webhook answers with a success status. Only `webhookUrl`, `title` and `description` are required:
+
+```csharp
+using SIGNL4.Core.Services;
+
+string webhookUrl = Environment.GetEnvironmentVariable("SIGNL4_WEBHOOK_URL")
+    ?? throw new InvalidOperationException("Set SIGNL4_WEBHOOK_URL.");
+
+await AlertService.SendAlertAsync(webhookUrl, "Nightly import failed", "The 02:00 import stopped at row 1,204.");
+```
+
+### What is sent
+
+The first sample posts this body, with `Content-Type: application/json; charset=utf-8`:
+
+```json
+{"title":"Disk almost full","message":"Volume D: on web-01 has 2% free.","severity":"high","X-S4-Service":"Storage","details":[{"Key":"Host","Value":"web-01"},{"Key":"Free space","Value":"2%"}]}
+```
+
+| Parameter | JSON field | What the library does |
+|---|---|---|
+| `webhookUrl` | none | Posts to this URL. SIGNL4's form is `https://connect.signl4.com/webhook/{team-secret}`. |
+| `title` | `title` | Sends it as given. |
+| `description` | `message` | Sends it as given. |
+| `severity` | `severity` | Sends it in lower case. Default `"low"`. |
+| `category` | `X-S4-Service` | Sends it as given. Default `"Default"`. |
+| `details` | `details` | Sends the pairs as an array of `{"Key": ..., "Value": ...}` objects, in order. Default: an empty array. |
+
+Text is encoded by System.Text.Json, which writes a line break as `\n` and quotes, `<`, `>`, `&` and every non-ASCII character as `\uXXXX` escapes; a JSON reader decodes them back to the original text. A null `title`, `description` or `category` is sent as JSON `null`.
+
+### How SIGNL4 reads it
+
+From SIGNL4's [webhook documentation](https://docs.signl4.com/integrations/webhook/) and [code samples](https://docs.signl4.com/samples/code-samples/), as read on 2026-10-02:
+
+- SIGNL4 documents `Title` (or `subject`) and `Message` (or `body`), capitalized. The library sends `title` and `message` in lower case. The documentation does not say whether field names are case sensitive.
+- `X-S4-Service` is a documented control parameter: it puts the alert in the category with that name. The library always sends one, `Default` unless you name another category.
+- SIGNL4 documents no severity or priority field. `severity` arrives as an ordinary alert parameter and does not change how SIGNL4 alerts the team.
+- SIGNL4's examples show extra parameters as top-level fields holding text. The documentation does not say how SIGNL4 shows a field holding an array of objects, such as `details`.
+- The library sends none of the other control parameters (`X-S4-AlertingScenario`, `X-S4-ExternalID`, `X-S4-Status`, `X-S4-Location`, `X-S4-Filtering`), so it raises new alerts but cannot acknowledge or resolve one.
+- The code samples treat `201 Created` as success. The library accepts any status from 200 to 299.
+
+### Errors
+
+- `ArgumentException` when `webhookUrl` is null or empty.
+- `InvalidOperationException` when `webhookUrl` is not an absolute URL, whitespace included; `NotSupportedException` for a scheme other than `http` and `https`; `UriFormatException` when it cannot be parsed.
+- `NullReferenceException` when `severity` is null.
+- `HttpRequestException` when the webhook cannot be reached or answers with a status outside 200 to 299. The message names the status code, or the host and port, never the path, so it does not hold the team secret.
+- `TaskCanceledException` when no answer arrives within 100 seconds, HttpClient's default timeout.
+
+Every call goes through one static `HttpClient` with default settings, created on first use and never disposed. A call cannot be cancelled, and its timeout, proxy and handler cannot be changed.
+
+---
+
+## Security
+
+### The webhook URL is a secret
+
+Anyone holding the URL can raise alerts for the team, so treat it as a password: keep it in configuration or a secret store, out of source control and out of logs. The library's exception messages leave it out. HTTP tracing or logging in your application, such as OpenTelemetry's HttpClient instrumentation, can record the full request URL, secret included.
+
+### Use the https URL
+
+Version 1.0.3 also posts to an `http://` URL, which sends the team secret and the alert across the network in clear text. Use the `https://` URL SIGNL4 gives you.
+
+### What goes into an alert
+
+The alert carries the text you pass, unchanged, and the library sets no size limit. SIGNL4 shows it on the team's phones. Leave out passwords, connection strings and personal data. An exception's message or stack trace can hold file paths, server names and sometimes secrets, so check what it holds before you put it into `description` or `details`.
+
+---
+
+## Known problems in 1.0.3
+
+- An `http://` URL is accepted, so the team secret and the alert can cross the network in clear text.
+- A redirect can lose an alert without an error. When the webhook answers `301` or `302`, HttpClient repeats the request as a `GET` without the body, and the call completes as if the alert had been raised.
+- Blocking on the returned task (`.Wait()`, `.Result`) on a thread with a single-threaded synchronization context, such as a WinForms or WPF UI thread or classic ASP.NET, deadlocks: the method tries to resume on the thread the caller is blocking.
+- A null `severity` throws `NullReferenceException` instead of `ArgumentNullException`.
+- The shared `HttpClient` keeps a connection open for as long as calls follow each other within a minute, so a process that alerts that often never looks up the webhook host's address again.
+
+---
+
+## License
+
+[MIT](https://github.com/WilliamSmithEdward/SIGNL4.Core/blob/main/LICENSE.txt).
