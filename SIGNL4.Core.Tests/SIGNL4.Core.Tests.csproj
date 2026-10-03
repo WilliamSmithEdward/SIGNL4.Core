@@ -8,6 +8,10 @@
     <IsTestProject>true</IsTestProject>
     <OutputType>Exe</OutputType>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- xUnit1051 asks every call to SendAlertAsync to pass the test's CancellationToken. Most
+         tests call the overload without a token on purpose: it is the one existing callers
+         use, and the tests are what show it still behaves. CancellationTests covers the other. -->
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

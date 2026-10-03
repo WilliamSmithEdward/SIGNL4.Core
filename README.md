@@ -52,6 +52,24 @@ string webhookUrl = Environment.GetEnvironmentVariable("SIGNL4_WEBHOOK_URL")
 await AlertService.SendAlertAsync(webhookUrl, "Nightly import failed", "The 02:00 import stopped at row 1,204.");
 ```
 
+To cancel a call, or give up sooner than HttpClient's 100 seconds, pass a `CancellationToken`. That overload takes every argument:
+
+```csharp
+using SIGNL4.Core.Services;
+
+string webhookUrl = Environment.GetEnvironmentVariable("SIGNL4_WEBHOOK_URL")
+    ?? throw new InvalidOperationException("Set SIGNL4_WEBHOOK_URL.");
+
+// Give up after 10 seconds.
+using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+await AlertService.SendAlertAsync(
+    webhookUrl, "Nightly import failed", "The 02:00 import stopped at row 1,204.",
+    "high", "Imports", null, timeout.Token);
+```
+
+A token cancelled before the call sends nothing. One cancelled after the request has gone ends the call, but SIGNL4 may still raise the alert.
+
 ### What is sent
 
 The first sample posts this body, with `Content-Type: application/json; charset=utf-8`:
@@ -87,9 +105,9 @@ From SIGNL4's [webhook documentation](https://docs.signl4.com/integrations/webho
 - `ArgumentNullException` when `webhookUrl` is null, and `ArgumentException` when it is empty, is not an absolute URL, or is not `https`. Plain `http` is accepted only for the local machine (a loopback address or `localhost`), such as a test server. Nothing is sent, and the message leaves the URL out.
 - `ArgumentNullException` when `severity` is null. Nothing is sent.
 - `HttpRequestException` when the webhook cannot be reached, answers with a status outside 200 to 299, or answers with a redirect (`301`, `302` or `303`) that HttpClient follows with a `GET`, which drops the alert. The message names the status code, or the host and port, never the path, so it does not hold the team secret.
-- `TaskCanceledException` when no answer arrives within 100 seconds, HttpClient's default timeout.
+- `OperationCanceledException` when the token is cancelled, and `TaskCanceledException` (a subclass) when no answer arrives within 100 seconds, HttpClient's default timeout.
 
-Every call goes through one static `HttpClient`, created on first use and never disposed. It uses the system proxy, checks the server's certificate, follows redirects (a `307` or `308` keeps the alert), and replaces its connections every two minutes, so a change to the webhook host's address is seen. Blocking on the returned task (`.Wait()`, `.Result`) does not deadlock, even on a UI thread. A call cannot be cancelled, and its timeout, proxy and handler cannot be changed.
+Every call goes through one static `HttpClient`, created on first use and never disposed. It uses the system proxy, checks the server's certificate, follows redirects (a `307` or `308` keeps the alert), and replaces its connections every two minutes, so a change to the webhook host's address is seen. Blocking on the returned task (`.Wait()`, `.Result`) does not deadlock, even on a UI thread. Its proxy and handler cannot be changed.
 
 ---
 
