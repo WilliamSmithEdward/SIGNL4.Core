@@ -26,7 +26,8 @@ process, and reads and writes no files. What it reaches:
 
 - **Network.** `AlertService.SendAlertAsync` sends one HTTP POST, a JSON
   body built from the caller's arguments, to the webhook URL the caller
-  passes. It goes through one static `HttpClient` with default settings:
+  passes, which must be `https`, or `http` to the local machine. It goes
+  through one static `HttpClient` with default settings:
   the system proxy, the machine's certificate checks, redirects followed,
   and a 100-second timeout. The library reads nothing from the answer but
   its status code. Nothing else in the library uses the network.
@@ -35,8 +36,8 @@ The webhook URL holds the team secret, which is all it takes to raise
 alerts for the team. Input that makes the library send the URL, the
 secret or the alert anywhere but the URL the caller gave, put the URL or
 the secret into an exception message, or run code counts as a
-vulnerability. So does an alert sent without TLS to an `https://` URL, or
-to a server whose certificate the machine does not trust.
+vulnerability. So does an alert sent without TLS to any machine but the
+local one, or to a server whose certificate the machine does not trust.
 
 ### The webhook URL
 
@@ -46,8 +47,10 @@ port, never the path that holds the secret. HTTP tracing or logging in the
 application, such as OpenTelemetry's HttpClient instrumentation, can record
 the full request URL, secret included.
 
-Use the `https://` URL SIGNL4 gives you. Version 1.0.3 also posts to an
-`http://` URL, which sends the secret and the alert in clear text.
+The library refuses a URL that is not `https`, except `http` to a
+loopback address or `localhost`, before anything is sent. Version 1.0.3
+also posted to an `http://` URL on any host, which sends the secret and
+the alert in clear text; use the `https://` URL SIGNL4 gives you.
 
 ### What goes into an alert
 
