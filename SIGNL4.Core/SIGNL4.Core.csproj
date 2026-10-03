@@ -1,14 +1,19 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>SIGNL4.Core</Title>
-    <Description>A light-weight wrapper utility library for alerting with the SIGNL4 platform.</Description>
-    <Copyright>Hearthstone 2025</Copyright>
+    <Description>An unofficial client for SIGNL4's inbound webhook: sends an alert with a title, a message, a category and extra name and value pairs to a SIGNL4 team. Not made or supported by Derdack, the maker of SIGNL4.</Description>
+    <Authors>WilliamSmithE</Authors>
+    <Copyright>William Smith (WilliamSmithE)</Copyright>
     <PackageProjectUrl>https://github.com/WilliamSmithEdward/SIGNL4.Core</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/WilliamSmithEdward/SIGNL4.Core</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>signl4;alerting;alerts;webhook;on-call;incident;notifications</PackageTags>
     <Version>$(VersionPrefix)</Version>
   </PropertyGroup>
 
