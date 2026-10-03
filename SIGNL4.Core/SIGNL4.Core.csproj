@@ -15,11 +15,12 @@
     <RepositoryUrl>https://github.com/WilliamSmithEdward/SIGNL4.Core</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>signl4;alerting;alerts;webhook;on-call;incident;notifications</PackageTags>
-    <Version>$(VersionPrefix)</Version>
+    <!-- The one place the version is set: the package version and the assembly version
+         both come from it, and Publish refuses a tag that does not match it. -->
+    <Version>1.0.3</Version>
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>1.0.3</VersionPrefix>
     <PackageIcon>signl4_library.png</PackageIcon>
     <PackageReadmeFile>NugetReadMe.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
