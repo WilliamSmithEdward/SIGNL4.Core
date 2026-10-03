@@ -74,5 +74,13 @@ What an agent working here must not break:
   .NET 8 and .NET 9 leave Microsoft support on 2026-11-10. Change the list
   only on the owner's decision, and update `ci.yml`, `publish.yml` and the
   READMEs with it.
+- **Tests.** `SIGNL4.Core.Tests` is an xUnit v3 project run by
+  Microsoft.Testing.Platform (`global.json` opts `dotnet test` in), on
+  net8.0, net9.0 and net10.0:
+  `dotnet test --solution SIGNL4.Core.sln -c Release --fail-skips on`.
+  CI runs them with `--fail-skips on`. A test that sends an alert talks only
+  to `FakeWebhook`, in-process on 127.0.0.1, with a placeholder secret; any
+  other host in a test is a reserved name (`.invalid`) that never resolves.
+  A fix comes with a test that fails without it.
 - **XML docs.** CI builds with warnings as errors, so every public member
   needs an XML doc comment.
