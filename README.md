@@ -5,7 +5,7 @@
 [![CI](https://github.com/WilliamSmithEdward/SIGNL4.Core/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/WilliamSmithEdward/SIGNL4.Core/actions/workflows/ci.yml)
 [![Security](https://github.com/WilliamSmithEdward/SIGNL4.Core/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/WilliamSmithEdward/SIGNL4.Core/actions/workflows/security.yml)
 [![Malware scan](https://github.com/WilliamSmithEdward/SIGNL4.Core/actions/workflows/malware-scan.yml/badge.svg?branch=main)](https://github.com/WilliamSmithEdward/SIGNL4.Core/actions/workflows/malware-scan.yml)
-[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/WilliamSmithEdward/SIGNL4.Core)](https://scorecard.dev/viewer/?uri=github.com/WilliamSmithEdward/SIGNL4.Core)
+[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/WilliamSmithEdward/SIGNL4.Core?label=openssf%20score)](https://scorecard.dev/viewer/?uri=github.com/WilliamSmithEdward/SIGNL4.Core)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/WilliamSmithEdward/SIGNL4.Core/blob/main/LICENSE.txt)
 
 SIGNL4.Core sends an alert to a SIGNL4 team through the team's inbound webhook. It is an unofficial client: SIGNL4 is a product of Derdack, and this library is not made, endorsed or supported by Derdack.
