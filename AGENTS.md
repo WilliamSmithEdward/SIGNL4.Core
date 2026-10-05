@@ -52,9 +52,9 @@ What an agent working here must not break:
   names, and no API key is stored anywhere.
 - **Two READMEs that say the same things.** `README.md` is the GitHub page
   and `SIGNL4.Core/NugetReadMe.md` is packed as the nuget.org readme.
-  Change both in the same pull request. They differ only in the badge block,
-  which `NugetReadMe.md` leaves out because nuget.org does not render images
-  from api.scorecard.dev. Links in both are absolute, since nuget.org does
+  Change both in the same pull request. Both include the same badge block, with the Scorecard image served
+  by img.shields.io so NuGet can render it. Keep image URLs absolute and
+  use NuGet-supported hosts. Links in both are absolute, since nuget.org does
   not resolve relative ones. Compile and run a changed README sample against
   the library before committing it.
 - **No real webhook, ever.** Tests and README samples never call a real
