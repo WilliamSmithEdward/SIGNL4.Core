@@ -9,6 +9,12 @@ with the UTC date the nuget.org catalog records for each upload. Neither
 nuget.org nor the READMEs carried release notes for them. All four versions
 are listed on nuget.org and target net9.0.
 
+## [2.0.1] - 2026-10-04
+
+* The NuGet package now embeds the root GitHub `README.md`, including its badges, as its only README. The OpenSSF Scorecard badge is served through `img.shields.io`, which NuGet supports.
+* CI and Publish verify that the packaged README exactly matches the root file.
+* No library API or runtime behavior changes.
+
 ## [2.0.0] - 2026-10-02
 
 The webhook URL must use https, so the team secret in it is never sent in clear text, and a redirect that drops an alert throws instead of passing for success. Blocking on the returned task no longer deadlocks on a UI thread, the shared HttpClient picks up a change to the webhook host's address, a null severity throws `ArgumentNullException`, and a new overload takes a `CancellationToken`. Two of the fixes change what callers see, hence the major version. The library has no package dependencies.
